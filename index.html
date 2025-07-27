@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MemoryCloud - Add Memory</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 15px;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #memoryList div {
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    #memoryList small {
+      color: #555;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-7PooVI7jV15yER2Nw3g-vX2YIiLf9F0",
+      authDomain: "prudhvi-memorycloud.firebaseapp.com",
+      projectId: "prudhvi-memorycloud",
+      storageBucket: "prudhvi-memorycloud.appspot.com",
+      messagingSenderId: "952784667300",
+      appId: "1:952784667300:web:97307a189393da469f5c31",
+      measurementId: "G-6G5C6PSQN7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+
+    // Save new memory to Firestore
+    window.saveMemory = async function () {
+      const text = document.getElementById("memoryText").value;
+      const timestamp = new Date();
+
+      if (!text.trim()) {
+        alert("Please enter some text.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "memories"), {
+          uid: currentUser.uid,
+          memory: text,
+          createdAt: timestamp.toISOString()
+        });
+        alert("✅ Memory saved successfully!");
+        document.getElementById("memoryText").value = "";
+        loadMemories(); // Refresh timeline
+      } catch (e) {
+        console.error("❌ Error saving memory: ", e);
+      }
+    };
+
+    // Load only current user's memories
+    async function loadMemories() {
+      const memoryList = document.getElementById("memoryList");
+      memoryList.innerHTML = "<p>Loading memories...</p>";
+
+      const q = query(collection(db, "memories"), orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      memoryList.innerHTML = "";
+
+      if (querySnapshot.empty) {
+        memoryList.innerHTML = "<p>No memories found.</p>";
+      }
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.uid === currentUser.uid) {
+          const item = document.createElement("div");
+          item.innerHTML = `
+            <p>${data.memory}</p>
+            <small>🕓 ${new Date(data.createdAt).toLocaleString()}</small>
+          `;
+          memoryList.appendChild(item);
+        }
+      });
+    }
+
+    // Check login status and redirect if not logged in
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "https://prudhvisrirammemorycloud.netlify.app/login.html";
+      } else {
+        currentUser = user;
+        loadMemories();
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>🧠 Add a New Memory</h2>
+    <textarea id="memoryText" placeholder="Type something you want to remember..."></textarea>
+    <button onclick="saveMemory()">Save Memory</button>
+
+    <hr><br>
+    <h3>🕒 Your Memory Timeline</h3>
+    <div id="memoryList"></div>
+  </div>
+</body>
+</html>

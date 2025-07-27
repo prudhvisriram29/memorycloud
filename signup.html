@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signup - MemoryCloud</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f0f2f5; }
+    .box { max-width: 400px; margin: auto; background: #fff; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 10px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-7PooVI7jV15yER2Nw3g-vX2YIiLf9F0",
+      authDomain: "prudhvi-memorycloud.firebaseapp.com",
+      projectId: "prudhvi-memorycloud",
+      storageBucket: "prudhvi-memorycloud.appspot.com",
+      messagingSenderId: "952784667300",
+      appId: "1:952784667300:web:97307a189393da469f5c31"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.signup = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("✅ Signup successful!");
+        window.location.href = "https://prudhvisrirammemorycloud.netlify.app/login.html";
+      } catch (error) {
+        alert("❌ " + error.message);
+      }
+    };
+  </script>
+</head>
+<body>
+  <div class="box">
+    <h2>📝 Signup to MemoryCloud</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button onclick="signup()">Signup</button>
+    <p>Already have an account? <a href="/login.html">Login here</a></p>
+  </div>
+</body>
+</html>
